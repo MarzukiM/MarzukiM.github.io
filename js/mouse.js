@@ -1,6 +1,28 @@
-document.addEventListener('mousemove', _.throttle(function(event) {
+function throttle(func, limit) {
+    let lastFunc;
+    let lastRan;
+    return function() {
+        const context = this;
+        const args = arguments;
+        if (!lastRan) {
+            func.apply(context, args);
+            lastRan = Date.now();
+        } else {
+            clearTimeout(lastFunc);
+            lastFunc = setTimeout(function() {
+                if ((Date.now() - lastRan) >= limit) {
+                    func.apply(context, args);
+                    lastRan = Date.now();
+                }
+            }, limit - (Date.now() - lastRan));
+        }
+    };
+}
+
+document.addEventListener('mousemove', throttle(function(event) {
     createtrail(event.pageX, event.pageY);
 }, 50)); // 50毫秒，即0.05秒
+
 function createtrail(x, y) {
     try {
         const trail = document.createElement('div');
