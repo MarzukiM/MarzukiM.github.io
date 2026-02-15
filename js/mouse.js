@@ -1,56 +1,54 @@
-// 鼠标拖尾效果实现
-// 创建一个数组用于存储拖尾点
-const trail = [];
-// 拖尾点的最大数量
-const maxTrail = 20;
+(function() {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    let mouseX = 0, mouseY = 0;
+    let dots = [];
 
-// 监听鼠标移动事件
-window.addEventListener('mousemove', function(e) {
-    // 获取鼠标当前位置
-    const pos = { x: e.clientX, y: e.clientY };
-    // 将当前位置添加到拖尾数组的开头
-    trail.unshift(pos);
-    // 如果拖尾数组长度超过最大数量，移除最后一个点
-    if (trail.length > maxTrail) {
-        trail.pop();
-    }
-});
+    // 设置 Canvas 覆盖全屏
+    canvas.style.cssText = 'position:fixed;top:0;left:0;pointer-events:none;z-index:99999;';
+    document.body.appendChild(canvas);
 
-// 创建拖尾点的DOM元素
-const trailEls = [];
-for (let i = 0; i < maxTrail; i++) {
-    const el = document.createElement('div');
-    // 设置拖尾点的样式
-    el.style.position = 'fixed';
-    el.style.width = '8px';
-    el.style.height = '8px';
-    el.style.borderRadius = '50%';
-    el.style.background = 'rgba(0,0,0,0.2)';
-    el.style.pointerEvents = 'none'; // 不影响鼠标事件
-    el.style.zIndex = 9999;
-    el.style.transition = 'background 0.2s';
-    document.body.appendChild(el);
-    trailEls.push(el);
-}
+    // 监听窗口大小变化
+    const resizeCanvas = () => {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    };
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
 
-// 渲染拖尾效果
-function renderTrail() {
-    // 遍历拖尾点数组
-    for (let i = 0; i < trailEls.length; i++) {
-        if (trail[i]) {
-            // 设置每个拖尾点的位置
-            trailEls[i].style.left = trail[i].x - 4 + 'px'; // 居中
-            trailEls[i].style.top = trail[i].y - 4 + 'px';
-            // 根据拖尾点的顺序设置透明度，实现渐变效果
-            trailEls[i].style.opacity = (1 - i / maxTrail).toString();
-        } else {
-            // 如果没有对应的拖尾点，隐藏该元素
-            trailEls[i].style.opacity = '0';
+    // 监听鼠标移动
+    document.addEventListener('mousemove', (e) => {
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+        // 每次移动添加一个新的点
+        dots.push({ x: mouseX, y: mouseY, life: 100 });
+    });
+
+    // 动画循环
+    function animate() {
+        // 使用半透明矩形覆盖实现“淡出”效果
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // 绘制所有点
+        for (let i = 0; i < dots.length; i++) {
+            const dot = dots[i];
+            dot.life--; // 生命周期减少
+
+            if (dot.life <= 0) {
+                dots.splice(i, 1); // 移除死亡的点
+                i--;
+                continue;
+            }
+
+            // 绘制圆点（颜色和大小可自定义）
+            ctx.beginPath();
+            ctx.arc(dot.x, dot.y, 3, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(255, 255, 255, ${dot.life / 100})`; // 透明度随生命周期变化
+            ctx.fill();
         }
-    }
-    // 使用requestAnimationFrame实现动画
-    requestAnimationFrame(renderTrail);
-}
 
-// 启动渲染
-renderTrail();
+        requestAnimationFrame(animate);
+    }
+    animate();
+})();
