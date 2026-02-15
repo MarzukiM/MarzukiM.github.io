@@ -1,7 +1,6 @@
-document.addEventListener('mousemove', function(event) {
+document.addEventListener('mousemove', _.throttle(function(event) {
     createtrail(event.pageX, event.pageY);
-});
-
+}, 50)); // 50毫秒，即0.05秒
 function createtrail(x, y) {
     try {
         const trail = document.createElement('div');
